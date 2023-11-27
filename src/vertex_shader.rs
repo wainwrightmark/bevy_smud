@@ -65,7 +65,6 @@ return out;
 }}
 "##
     );
-    //bevy::log::info!("{source}");
     let path = file!();
     Shader::from_wgsl(source, path)
 }

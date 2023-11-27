@@ -318,10 +318,6 @@ impl<const PARAMS: usize> SpecializedRenderPipeline for SmudPipeline<PARAMS> {
             + SCALE_WORDS)
             * WORD_LENGTH;
 
-        info!("{vertex_attributes:?}");
-        info!("stride: {vertex_array_stride}");
-
-
         RenderPipelineDescriptor {
             vertex: VertexState {
                 shader: shader_loading::get_vertex_handle::<PARAMS>().clone_weak(),
@@ -457,7 +453,6 @@ return fill::fill(d, in.color{fill_params});
 "#
             );
 
-            info!("{source}");
             let generated_shader =
                 Shader::from_wgsl(source, format!("smud::generated::{shader_key:?}"));
 
@@ -753,7 +748,6 @@ fn prepare_shapes<const PARAMS: usize>(
                     batches.push((
                         item.entity,
                         ShapeBatch {
-                            shader: (shader_handles.sdf_shader, shader_handles.fill_shader),
                             range: index..index,
                         },
                     ));
@@ -809,6 +803,6 @@ impl<const PARAMS: usize> Default for ShapeMeta<PARAMS> {
 
 #[derive(Component, Eq, PartialEq, Clone)]
 pub(crate) struct ShapeBatch {
-    shader: (AssetId<Shader>, AssetId<Shader>), //todo is this field needed
+
     range: Range<u32>,
 }
