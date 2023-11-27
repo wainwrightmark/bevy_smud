@@ -2,12 +2,14 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
-use bevy_smud::prelude::*;
+use bevy_smud::{prelude::*, param_usage::ShaderParamUsage};
 use rand::{prelude::IteratorRandom, random};
 
 // this example shows how to use per-instance parameters in shapes
 // in this simple example, a width and height is passed to a box shape,
 // but it could be used for almost anything.
+
+const PARAMS: usize = 2;
 
 fn main() {
     App::new()
@@ -17,7 +19,7 @@ fn main() {
         )
         .add_collection_to_loading_state::<_, AssetHandles>(GameState::Loading)
         .insert_resource(Msaa::Off)
-        .add_plugins((DefaultPlugins, SmudPlugin, bevy_lospec::PalettePlugin))
+        .add_plugins((DefaultPlugins, SmudPlugin::<PARAMS>, bevy_lospec::PalettePlugin))
         .add_systems(OnEnter(GameState::Running), setup)
         .run();
 }
@@ -41,7 +43,10 @@ fn setup(
     assets: Res<AssetHandles>,
     palettes: Res<Assets<bevy_lospec::Palette>>,
 ) {
-    let box_sdf = shaders.add_sdf_expr("smud::sd_box(p, params.xy)");
+    let sdf_param_usage = ShaderParamUsage::all_params::<PARAMS>();
+
+
+    let box_sdf = shaders.add_sdf_expr("smud::sd_box(p, vec2<f32>(param_0, param_1))", sdf_param_usage);
     let padding = 5.; // need some padding for the outline/falloff
     let spacing = 70.;
     let palette = palettes.get(&assets.palette).unwrap();
@@ -68,13 +73,14 @@ fn setup(
             .copied()
             .unwrap_or(Color::PINK);
 
-        commands.spawn(ShapeBundle {
+        commands.spawn(ShapeBundle::<PARAMS> {
             transform,
             shape: SmudShape {
                 color,
                 sdf: box_sdf.clone(),
-                frame: Frame::Quad(f32::max(size.x, size.y) + padding),
-                params: Vec4::new(size.x, size.y, 0., 0.),
+                frame: Frame::Quad(size.x.max(size.y) + padding),
+                params: [size.x, size.y],
+                sdf_param_usage: sdf_param_usage,
                 ..Default::default()
             },
             ..Default::default()

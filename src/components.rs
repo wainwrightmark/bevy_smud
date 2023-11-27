@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 
-use crate::DEFAULT_FILL_HANDLE;
+use crate::{DEFAULT_FILL_HANDLE, param_usage::ShaderParamUsage};
 
 #[derive(Component, Reflect, Debug, Clone)]
 #[reflect(Component)]
 /// Main component used for describing an sdf shape
-pub struct SmudShape {
+pub struct SmudShape<const PARAMS: usize> {
     /// The color used by the fill shader
     pub color: Color,
     /// Shader containing a wgsl function for a signed distance field
@@ -21,17 +21,25 @@ pub struct SmudShape {
     /// Parameters to pass to shapes, for things such as width of a box
     // perhaps it would be a better idea to have this as a separate component?
     // keeping it here for now...
-    pub params: Vec4,
+    pub params: [f32; PARAMS],
+
+    /// Indicates which of the params will be passed into the sdf function
+    pub sdf_param_usage: ShaderParamUsage,
+
+    /// Indicates which of the params will be passed into the fill function
+    pub fill_param_usage: ShaderParamUsage
 }
 
-impl Default for SmudShape {
+impl<const PARAMS: usize> Default for SmudShape<PARAMS> {
     fn default() -> Self {
         Self {
             color: Color::PINK,
             sdf: default(),
             frame: default(),
-            params: default(),
+            params: [0.0; PARAMS],
             fill: DEFAULT_FILL_HANDLE,
+            sdf_param_usage: ShaderParamUsage::NO_PARAMS,
+            fill_param_usage: ShaderParamUsage::NO_PARAMS,
         }
     }
 }

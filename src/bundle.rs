@@ -4,9 +4,9 @@ use crate::SmudShape;
 
 #[derive(Bundle, Default, Clone, Debug)]
 /// Bundle with all the components needed for drawing an sdf shape in 2d world space
-pub struct ShapeBundle {
+pub struct ShapeBundle<const PARAMS: usize> {
     /// The shape, which describes the geometry, color and fill
-    pub shape: SmudShape,
+    pub shape: SmudShape<PARAMS>,
     /// A transform, set this to set the position, orientation and scale of the shape
     ///
     /// note: scaling the shape with the transform will also scale the fill, including any outlines etc.

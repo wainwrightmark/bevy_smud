@@ -16,7 +16,7 @@ fn main() {
         .add_collection_to_loading_state::<_, AssetHandles>(GameState::Loading)
         .add_plugins((
             DefaultPlugins,
-            SmudPlugin,
+            SmudPlugin::<0>,
             bevy::diagnostic::LogDiagnosticsPlugin::default(),
             bevy::diagnostic::FrameTimeDiagnosticsPlugin,
             PanCamPlugin,
@@ -109,12 +109,15 @@ fn setup(
                         j as f32 * spacing - h as f32 * spacing / 2.,
                         0.,
                     )),
-                    shape: SmudShape {
+                    shape: SmudShape::<0> {
                         color,
                         // sdf_shader: shaders[index % shaders.len()].clone(),
                         sdf: shaders.choose(&mut rng).unwrap().clone(),
                         frame: Frame::Quad(50.),
                         fill: fills.choose(&mut rng).unwrap().clone(),
+                        params: Default::default(),
+                        fill_param_usage: Default::default(),
+                        sdf_param_usage: Default::default()
                     },
                     ..default()
                 },
