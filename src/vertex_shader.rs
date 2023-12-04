@@ -73,7 +73,7 @@ pub(crate) fn format_params_locations<const PARAMS: usize>() -> String {
     let mut result = "".to_string();
     for index in 0..PARAMS {
         result
-            .push_str(format!("@location({loc}) param_{index}: f32,\n", loc = index + 2).as_str());
+            .push_str(format!("@location({loc}) param_{index}: u32,\n", loc = index + 2).as_str());
     }
     result
 }

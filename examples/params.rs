@@ -79,7 +79,7 @@ fn setup(
                 color,
 
                 frame: Frame::Quad(size.x.max(size.y) + padding),
-                params: [size.x, size.y],
+                params: [size.x.into(), size.y.into()],
 
                 ..Default::default()
             },

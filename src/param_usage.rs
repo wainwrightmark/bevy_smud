@@ -56,7 +56,7 @@ impl ShaderParamUsage {
         let mut ret = "".to_string();
 
         for param in ParamsIter::new(self) {
-            ret.push_str(format!(", in.param_{param}").as_str())
+            ret.push_str(format!(", bitcast<f32>(in.param_{param})").as_str())
         }
 
         return ret;

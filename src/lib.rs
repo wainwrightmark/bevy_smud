@@ -257,7 +257,7 @@ impl<const PARAMS: usize> SpecializedRenderPipeline for SmudPipeline<PARAMS> {
             // perf: Maybe it's possible to pack this more efficiently?
             // Params
             VertexAttribute {
-                format: VertexFormat::Float32,
+                format: VertexFormat::Uint32,
                 offset: (4 + 1) * WORD_LENGTH,
                 shader_location: 2,
             };
@@ -499,7 +499,7 @@ impl<const PARAMS: usize> From<&SmudShaders<PARAMS>> for ShaderKey {
 #[derive(Component, Clone, Debug)]
 struct ExtractedShape<const PARAMS: usize> {
     color: Color,
-    params: [f32; PARAMS],
+    params: [SmudParam; PARAMS],
     frame: f32,
     transform: GlobalTransform,
     shader_key: ShaderKey,
@@ -777,7 +777,7 @@ fn prepare_shapes<const PARAMS: usize>(
 struct ShapeVertex<const PARAMS: usize> {
     pub color: [f32; 4],
     pub frame: f32,
-    pub params: [f32; PARAMS],
+    pub params: [SmudParam; PARAMS],
     pub position: [f32; 3],
     pub rotation: [f32; 2],
     pub scale: f32,

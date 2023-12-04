@@ -1,9 +1,7 @@
-use std::f32::consts::PI;
-
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use bevy_smud::{param_usage::ShaderParamUsage, prelude::*, SmudShaders};
-use rand::{prelude::IteratorRandom, random};
+use rand::prelude::IteratorRandom;
 
 // this example shows how to use per-instance parameters in shapes
 // in this simple example, a width and height is passed to a box shape,
@@ -101,7 +99,7 @@ fn setup(
                 color,
 
                 frame: Frame::Quad(50.0 + padding),
-                params: [color2.r(), color2.g(), color2.b()],
+                params: [color2.r().into(),  color2.g().into(), color2.b().into()],
             },
             shaders: SmudShaders {
                 sdf: circle.clone(),

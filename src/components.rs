@@ -1,6 +1,9 @@
 use bevy::prelude::*;
+use bytemuck::{Pod, Zeroable};
 
-use crate::{param_usage::ShaderParamUsage, DEFAULT_FILL_HANDLE, shader_loading::DEFAULT_SDF_HANDLE};
+use crate::{
+    param_usage::ShaderParamUsage, shader_loading::DEFAULT_SDF_HANDLE, DEFAULT_FILL_HANDLE,
+};
 
 #[derive(Component, Reflect, Debug, Clone)]
 #[reflect(Component)]
@@ -14,7 +17,7 @@ pub struct SmudShape<const PARAMS: usize> {
     /// Parameters to pass to shapes, for things such as width of a box
     // perhaps it would be a better idea to have this as a separate component?
     // keeping it here for now...
-    pub params: [f32; PARAMS],
+    pub params: [SmudParam; PARAMS],
 }
 
 impl<const PARAMS: usize> Default for SmudShape<PARAMS> {
@@ -22,7 +25,7 @@ impl<const PARAMS: usize> Default for SmudShape<PARAMS> {
         Self {
             color: Color::PINK,
             frame: default(),
-            params: [0.0; PARAMS],
+            params: [SmudParam::default(); PARAMS],
         }
     }
 }
@@ -72,5 +75,28 @@ impl Frame {
 impl Default for Frame {
     fn default() -> Self {
         Self::DEFAULT_QUAD
+    }
+}
+
+#[repr(transparent)]
+/// Parameters to a smud shader. This can be either an f32 or a u32 but will be sent as a u32
+#[derive(Debug, Copy, Clone, Default, PartialEq, Pod, Zeroable, Reflect)]
+pub struct SmudParam(u32);
+
+impl SmudParam {
+    /// Create a parameter from an integer
+    pub fn integer(value: u32) -> Self {
+        Self(value)
+    }
+
+    ///Create a parameter from a float
+    pub fn float(value: f32) -> Self {
+        value.into()
+    }
+}
+
+impl Into<SmudParam> for f32 {
+    fn into(self) -> SmudParam {
+        SmudParam(f32::to_bits(self))
     }
 }
