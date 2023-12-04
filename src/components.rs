@@ -100,3 +100,21 @@ impl Into<SmudParam> for f32 {
         SmudParam(f32::to_bits(self))
     }
 }
+
+impl From<SmudParam> for f32 {
+    fn from(value: SmudParam) -> Self {
+        f32::from_bits(value.0)
+    }
+}
+
+impl Into<SmudParam> for u32 {
+    fn into(self) -> SmudParam {
+        SmudParam(self)
+    }
+}
+
+impl From<SmudParam> for u32 {
+    fn from(value: SmudParam) -> Self {
+        value.0
+    }
+}
