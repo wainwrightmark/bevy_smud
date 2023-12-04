@@ -2,14 +2,19 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
-use bevy_smud::{prelude::*, param_usage::{ShaderParamUsage, ShaderParameter}, SmudShaders};
+use bevy_smud::{
+    param_usage::{ShaderParamUsage, ShaderParameter},
+    prelude::*,
+    SmudShaders,
+};
 use rand::{prelude::IteratorRandom, random};
 
 // this example shows how to use per-instance parameters in shapes
 // in this simple example, a width and height is passed to a box shape,
 // but it could be used for almost anything.
 
-const PARAMS: usize = 2;
+const F_PARAMS: usize = 2;
+const U_PARAMS: usize = 0;
 
 fn main() {
     App::new()
@@ -19,7 +24,11 @@ fn main() {
         )
         .add_collection_to_loading_state::<_, AssetHandles>(GameState::Loading)
         .insert_resource(Msaa::Off)
-        .add_plugins((DefaultPlugins, SmudPlugin::<PARAMS>, bevy_lospec::PalettePlugin))
+        .add_plugins((
+            DefaultPlugins,
+            SmudPlugin::<F_PARAMS, U_PARAMS>,
+            bevy_lospec::PalettePlugin,
+        ))
         .add_systems(OnEnter(GameState::Running), setup)
         .run();
 }
@@ -43,12 +52,14 @@ fn setup(
     assets: Res<AssetHandles>,
     palettes: Res<Assets<bevy_lospec::Palette>>,
 ) {
-
-    const PARAMETERS: &'static [ShaderParameter] = &[ ShaderParameter::f32(0), ShaderParameter::f32(1)];
+    const PARAMETERS: &'static [ShaderParameter] =
+        &[ShaderParameter::f32(0), ShaderParameter::f32(1)];
     let sdf_param_usage = ShaderParamUsage(PARAMETERS);
 
-
-    let box_sdf = shaders.add_sdf_expr("smud::sd_box(p, vec2<f32>(param_0, param_1))", sdf_param_usage);
+    let box_sdf = shaders.add_sdf_expr(
+        "smud::sd_box(p, vec2<f32>(param_f_0, param_f_1))",
+        sdf_param_usage,
+    );
     let padding = 5.; // need some padding for the outline/falloff
     let spacing = 70.;
     let palette = palettes.get(&assets.palette).unwrap();
@@ -75,18 +86,18 @@ fn setup(
             .copied()
             .unwrap_or(Color::PINK);
 
-        commands.spawn(ShapeBundle::<PARAMS> {
+        commands.spawn(ShapeBundle::<F_PARAMS, U_PARAMS> {
             transform,
             shape: SmudShape {
                 color,
 
                 frame: Frame::Quad(size.x.max(size.y) + padding),
-                params: [size.x.into(), size.y.into()],
+                f_params: [size.x.into(), size.y.into()],
 
                 ..Default::default()
             },
 
-            shaders: SmudShaders::<PARAMS> {
+            shaders: SmudShaders::<F_PARAMS, U_PARAMS> {
                 sdf: box_sdf.clone(),
                 // You can also specify a custom type of fill
                 // The simple fill is just a simple anti-aliased opaque fill

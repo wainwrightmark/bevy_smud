@@ -7,7 +7,7 @@ fn main() {
         // bevy_smud comes with anti-aliasing built into the standards fills
         // which is more efficient than MSAA, and also works on Linux, wayland
         .insert_resource(Msaa::Off)
-        .add_plugins((DefaultPlugins, SmudPlugin::<0>))
+        .add_plugins((DefaultPlugins, SmudPlugin::<0,0>))
         .add_systems(Startup, setup)
         .run();
 }
@@ -39,7 +39,7 @@ return smud::sd_circle(p_2 - vec2<f32>(20., 0.), 40.);
     let bevy = asset_server.load("bevy.wgsl");
 
     commands.spawn(ShapeBundle {
-        shape: SmudShape::<0> {
+        shape: SmudShape::<0,0> {
             color: Color::TOMATO,
 
             // The frame needs to be bigger than the shape we're drawing
@@ -47,7 +47,7 @@ return smud::sd_circle(p_2 - vec2<f32>(20., 0.), 40.);
             frame: Frame::Quad(80.),
             ..default()
         },
-        shaders: SmudShaders::<0> {
+        shaders: SmudShaders::<0,0> {
 
             ..default()
         },
@@ -56,12 +56,12 @@ return smud::sd_circle(p_2 - vec2<f32>(20., 0.), 40.);
 
     commands.spawn(ShapeBundle {
         transform: Transform::from_translation(Vec3::X * 200.),
-        shape: SmudShape::<0> {
+        shape: SmudShape::<0,0> {
             color: Color::rgb(0.7, 0.6, 0.4),
             frame: Frame::Quad(80.),
             ..default()
         },
-        shaders: SmudShaders::<0> {
+        shaders: SmudShaders::<0,0> {
             sdf: peanut,
             ..default()
         },
@@ -74,13 +74,13 @@ return smud::sd_circle(p_2 - vec2<f32>(20., 0.), 40.);
             scale: Vec3::splat(0.4),
             ..default()
         },
-        shape: SmudShape::<0> {
+        shape: SmudShape::<0,0> {
             color: Color::WHITE,
 
             frame: Frame::Quad(295.),
             ..default()
         },
-        shaders: SmudShaders::<0> {
+        shaders: SmudShaders::<0,0> {
             sdf: bevy,
             // You can also specify a custom type of fill
             // The simple fill is just a simple anti-aliased opaque fill

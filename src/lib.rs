@@ -83,54 +83,57 @@ pub mod prelude {
 
 #[derive(Default)]
 /// Main plugin for enabling rendering of Sdf shapes
-pub struct SmudPlugin<const PARAMS: usize>;
+pub struct SmudPlugin<const F_PARAMS: usize, const U_PARAMS: usize>;
 
-impl<const PARAMS: usize> Plugin for SmudPlugin<PARAMS> {
+impl<const F_PARAMS: usize, const U_PARAMS: usize> Plugin for SmudPlugin<F_PARAMS, U_PARAMS> {
     fn build(&self, app: &mut App) {
         // All the messy boiler-plate for loading a bunch of shaders
-        app.add_plugins(ShaderLoadingPlugin::<PARAMS>);
+        app.add_plugins(ShaderLoadingPlugin::<F_PARAMS, U_PARAMS>);
         // app.add_plugins(UiShapePlugin);
 
         if let Ok(render_app) = app.get_sub_app_mut(RenderApp) {
             render_app
-                .add_render_command::<Transparent2d, DrawSmudShape<PARAMS>>()
-                .init_resource::<ExtractedShapes<PARAMS>>()
-                .init_resource::<ShapeMeta<PARAMS>>()
-                .init_resource::<SpecializedRenderPipelines<SmudPipeline<PARAMS>>>()
+                .add_render_command::<Transparent2d, DrawSmudShape<F_PARAMS, U_PARAMS>>()
+                .init_resource::<ExtractedShapes<F_PARAMS, U_PARAMS>>()
+                .init_resource::<ShapeMeta<F_PARAMS, U_PARAMS>>()
+                .init_resource::<SpecializedRenderPipelines<SmudPipeline<F_PARAMS, U_PARAMS>>>()
                 .add_systems(
                     ExtractSchedule,
-                    (extract_shapes::<PARAMS>, extract_sdf_shaders::<PARAMS>),
+                    (
+                        extract_shapes::<F_PARAMS, U_PARAMS>,
+                        extract_sdf_shaders::<F_PARAMS, U_PARAMS>,
+                    ),
                 )
                 .add_systems(
                     Render,
                     (
-                        queue_shapes::<PARAMS>.in_set(RenderSet::Queue),
-                        prepare_shapes::<PARAMS>.in_set(RenderSet::PrepareBindGroups),
+                        queue_shapes::<F_PARAMS, U_PARAMS>.in_set(RenderSet::Queue),
+                        prepare_shapes::<F_PARAMS, U_PARAMS>.in_set(RenderSet::PrepareBindGroups),
                     ),
                 );
         }
 
-        app.register_type::<SmudShape<PARAMS>>();
+        app.register_type::<SmudShape<F_PARAMS, U_PARAMS>>();
     }
 
     fn finish(&self, app: &mut App) {
         app.get_sub_app_mut(RenderApp)
             .unwrap()
-            .init_resource::<SmudPipeline<PARAMS>>();
+            .init_resource::<SmudPipeline<F_PARAMS, U_PARAMS>>();
     }
 }
 
-type DrawSmudShape<const PARAMS: usize> = (
+type DrawSmudShape<const F_PARAMS: usize, const U_PARAMS: usize> = (
     SetItemPipeline,
-    SetShapeViewBindGroup<0, PARAMS>,
-    DrawShapeBatch<PARAMS>,
+    SetShapeViewBindGroup<0, F_PARAMS, U_PARAMS>,
+    DrawShapeBatch<F_PARAMS, U_PARAMS>,
 );
 
-struct SetShapeViewBindGroup<const I: usize, const PARAMS: usize>;
-impl<P: PhaseItem, const I: usize, const PARAMS: usize> RenderCommand<P>
-    for SetShapeViewBindGroup<I, PARAMS>
+struct SetShapeViewBindGroup<const I: usize, const F_PARAMS: usize, const U_PARAMS: usize>;
+impl<P: PhaseItem, const I: usize, const F_PARAMS: usize, const U_PARAMS: usize> RenderCommand<P>
+    for SetShapeViewBindGroup<I, F_PARAMS, U_PARAMS>
 {
-    type Param = SRes<ShapeMeta<PARAMS>>;
+    type Param = SRes<ShapeMeta<F_PARAMS, U_PARAMS>>;
     type ViewWorldQuery = Read<ViewUniformOffset>;
     type ItemWorldQuery = ();
 
@@ -150,9 +153,11 @@ impl<P: PhaseItem, const I: usize, const PARAMS: usize> RenderCommand<P>
     }
 }
 
-struct DrawShapeBatch<const PARAMS: usize>;
-impl<P: PhaseItem, const PARAMS: usize> RenderCommand<P> for DrawShapeBatch<PARAMS> {
-    type Param = SRes<ShapeMeta<PARAMS>>;
+struct DrawShapeBatch<const F_PARAMS: usize, const U_PARAMS: usize>;
+impl<P: PhaseItem, const F_PARAMS: usize, const U_PARAMS: usize> RenderCommand<P>
+    for DrawShapeBatch<F_PARAMS, U_PARAMS>
+{
+    type Param = SRes<ShapeMeta<F_PARAMS, U_PARAMS>>;
     type ViewWorldQuery = ();
     type ItemWorldQuery = Read<ShapeBatch>;
 
@@ -171,12 +176,12 @@ impl<P: PhaseItem, const PARAMS: usize> RenderCommand<P> for DrawShapeBatch<PARA
 }
 
 #[derive(Resource)]
-struct SmudPipeline<const PARAMS: usize> {
+struct SmudPipeline<const F_PARAMS: usize, const U_PARAMS: usize> {
     view_layout: BindGroupLayout,
     shaders: ShapeShaders,
 }
 
-impl<const PARAMS: usize> FromWorld for SmudPipeline<PARAMS> {
+impl<const F_PARAMS: usize, const U_PARAMS: usize> FromWorld for SmudPipeline<F_PARAMS, U_PARAMS> {
     fn from_world(world: &mut World) -> Self {
         let render_device = world.get_resource::<RenderDevice>().unwrap();
 
@@ -220,7 +225,9 @@ struct SmudPipelineKey {
     hdr: bool,
 }
 
-impl<const PARAMS: usize> SpecializedRenderPipeline for SmudPipeline<PARAMS> {
+impl<const F_PARAMS: usize, const U_PARAMS: usize> SpecializedRenderPipeline
+    for SmudPipeline<F_PARAMS, U_PARAMS>
+{
     type Key = SmudPipelineKey;
 
     fn specialize(&self, key: Self::Key) -> RenderPipelineDescriptor {
@@ -250,21 +257,36 @@ impl<const PARAMS: usize> SpecializedRenderPipeline for SmudPipeline<PARAMS> {
             VertexAttribute {
                 format: VertexFormat::Float32,
                 offset: (COLOR_WORDS) * WORD_LENGTH,
-                shader_location: 4 + PARAMS as u32,
+                shader_location: 4 + F_PARAMS as u32 + U_PARAMS as u32,
             },
         ];
 
-        let mut param_attributes: [VertexAttribute; PARAMS] = [
+        let mut f_param_attributes: [VertexAttribute; F_PARAMS] = [
+            // perf: Maybe it's possible to pack this more efficiently?
+            // Params
+            VertexAttribute {
+                format: VertexFormat::Float32,
+                offset: (COLOR_WORDS + FRAME_WORDS) * WORD_LENGTH,
+                shader_location: 2,
+            };
+             F_PARAMS];
+
+        for (index, attribute) in f_param_attributes.iter_mut().enumerate() {
+            attribute.offset += index as u64 * WORD_LENGTH * WORDS_PER_PARAM;
+            attribute.shader_location += index as u32;
+        }
+
+        let mut u_param_attributes: [VertexAttribute; U_PARAMS] = [
             // perf: Maybe it's possible to pack this more efficiently?
             // Params
             VertexAttribute {
                 format: VertexFormat::Uint32,
-                offset: (4 + 1) * WORD_LENGTH,
-                shader_location: 2,
+                offset: (COLOR_WORDS + FRAME_WORDS+ (WORDS_PER_PARAM * (F_PARAMS ) as u64)) * WORD_LENGTH,
+                shader_location: 2 + (F_PARAMS as u32),
             };
-             PARAMS];
+             U_PARAMS];
 
-        for (index, attribute) in param_attributes.iter_mut().enumerate() {
+        for (index, attribute) in u_param_attributes.iter_mut().enumerate() {
             attribute.offset += index as u64 * WORD_LENGTH * WORDS_PER_PARAM;
             attribute.shader_location += index as u32;
         }
@@ -273,7 +295,9 @@ impl<const PARAMS: usize> SpecializedRenderPipeline for SmudPipeline<PARAMS> {
             // Position
             VertexAttribute {
                 format: VertexFormat::Float32x3,
-                offset: (COLOR_WORDS + FRAME_WORDS + (WORDS_PER_PARAM * PARAMS as u64))
+                offset: (COLOR_WORDS
+                    + FRAME_WORDS
+                    + (WORDS_PER_PARAM * (F_PARAMS + U_PARAMS) as u64))
                     * WORD_LENGTH,
                 shader_location: 0,
             },
@@ -282,38 +306,42 @@ impl<const PARAMS: usize> SpecializedRenderPipeline for SmudPipeline<PARAMS> {
                 format: VertexFormat::Float32x2,
                 offset: (COLOR_WORDS
                     + FRAME_WORDS
-                    + (WORDS_PER_PARAM * PARAMS as u64)
+                    + (WORDS_PER_PARAM * (F_PARAMS + U_PARAMS) as u64)
                     + POSITION_WORDS)
                     * WORD_LENGTH,
-                shader_location: 2 + PARAMS as u32,
+                shader_location: 2 + (F_PARAMS + U_PARAMS) as u32,
             },
             // Scale
             VertexAttribute {
                 format: VertexFormat::Float32,
                 offset: (COLOR_WORDS
                     + FRAME_WORDS
-                    + (WORDS_PER_PARAM * PARAMS as u64)
+                    + (WORDS_PER_PARAM * (F_PARAMS + U_PARAMS) as u64)
                     + POSITION_WORDS
                     + ROTATION_WORDS)
                     * WORD_LENGTH,
-                shader_location: 3 + PARAMS as u32,
+                shader_location: 3 + (F_PARAMS + U_PARAMS) as u32,
             },
         ];
 
         // Customize how to store the meshes' vertex attributes in the vertex buffer
         // Our meshes only have position, color and params
         let mut vertex_attributes = Vec::with_capacity(
-            pre_param_attributes.len() + param_attributes.len() + post_param_attributes.len(),
+            pre_param_attributes.len()
+                + f_param_attributes.len()
+                + u_param_attributes.len()
+                + post_param_attributes.len(),
         );
 
         vertex_attributes.extend_from_slice(&pre_param_attributes);
-        vertex_attributes.extend_from_slice(&param_attributes);
+        vertex_attributes.extend_from_slice(&f_param_attributes);
+        vertex_attributes.extend_from_slice(&u_param_attributes);
         vertex_attributes.extend_from_slice(&post_param_attributes);
 
         // This is the sum of the size of the attributes above
         let vertex_array_stride = (COLOR_WORDS
             + FRAME_WORDS
-            + (WORDS_PER_PARAM * PARAMS as u64)
+            + (WORDS_PER_PARAM * (F_PARAMS + U_PARAMS) as u64)
             + POSITION_WORDS
             + ROTATION_WORDS
             + SCALE_WORDS)
@@ -321,7 +349,7 @@ impl<const PARAMS: usize> SpecializedRenderPipeline for SmudPipeline<PARAMS> {
 
         RenderPipelineDescriptor {
             vertex: VertexState {
-                shader: shader_loading::get_vertex_handle::<PARAMS>().clone_weak(),
+                shader: shader_loading::get_vertex_handle::<F_PARAMS, U_PARAMS>().clone_weak(),
                 entry_point: "vertex".into(),
                 shader_defs: Vec::new(),
                 buffers: vec![VertexBufferLayout {
@@ -376,12 +404,12 @@ struct ShapeShaders {
 
 // TODO: do some of this work in the main world instead, so we don't need to take a mutable
 // reference to MainWorld.
-fn extract_sdf_shaders<const PARAMS: usize>(
+fn extract_sdf_shaders<const F_PARAMS: usize, const U_PARAMS: usize>(
     mut main_world: ResMut<MainWorld>,
-    mut pipeline: ResMut<SmudPipeline<PARAMS>>,
+    mut pipeline: ResMut<SmudPipeline<F_PARAMS, U_PARAMS>>,
 ) {
     main_world.resource_scope(|world, mut shaders: Mut<Assets<Shader>>| {
-        let mut shapes = world.query::<&SmudShaders<PARAMS>>();
+        let mut shapes = world.query::<&SmudShaders<F_PARAMS, U_PARAMS>>();
 
         for shape in shapes.iter(world) {
             let shader_key = ShaderKey {
@@ -428,7 +456,7 @@ fn extract_sdf_shaders<const PARAMS: usize>(
             };
 
             debug!("Generating shader");
-            let params_locations = vertex_shader::format_params_locations::<PARAMS>();
+            let params_locations = vertex_shader::format_params_locations::<F_PARAMS, U_PARAMS>();
             let sdf_params = shader_key.sdf_params_usage.in_params_str();
             let fill_params = shader_key.fill_params_usage.in_params_str();
 
@@ -486,8 +514,10 @@ impl ShaderKey {
     };
 }
 
-impl<const PARAMS: usize> From<&SmudShaders<PARAMS>> for ShaderKey {
-    fn from(value: &SmudShaders<PARAMS>) -> Self {
+impl<const F_PARAMS: usize, const U_PARAMS: usize> From<&SmudShaders<F_PARAMS, U_PARAMS>>
+    for ShaderKey
+{
+    fn from(value: &SmudShaders<F_PARAMS, U_PARAMS>) -> Self {
         Self {
             sdf_shader: value.sdf.id(),
             fill_shader: value.fill.id(),
@@ -498,27 +528,28 @@ impl<const PARAMS: usize> From<&SmudShaders<PARAMS>> for ShaderKey {
 }
 
 #[derive(Component, Clone, Debug)]
-struct ExtractedShape<const PARAMS: usize> {
+struct ExtractedShape<const F_PARAMS: usize, const U_PARAMS: usize> {
     color: Color,
-    params: [SmudParam; PARAMS],
+    f_params: [f32; F_PARAMS],
+    u_params: [u32; U_PARAMS],
     frame: f32,
     transform: GlobalTransform,
     shader_key: ShaderKey,
 }
 
 #[derive(Resource, Default, Debug)]
-struct ExtractedShapes<const PARAMS: usize> {
-    shapes: EntityHashMap<Entity, ExtractedShape<PARAMS>>,
+struct ExtractedShapes<const F_PARAMS: usize, const U_PARAMS: usize> {
+    shapes: EntityHashMap<Entity, ExtractedShape<F_PARAMS, U_PARAMS>>,
 }
 
-fn extract_shapes<const PARAMS: usize>(
-    mut extracted_shapes: ResMut<ExtractedShapes<PARAMS>>,
+fn extract_shapes<const F_PARAMS: usize, const U_PARAMS: usize>(
+    mut extracted_shapes: ResMut<ExtractedShapes<F_PARAMS, U_PARAMS>>,
     shape_query: Extract<
         Query<(
             Entity,
             &ViewVisibility,
-            &SmudShape<PARAMS>,
-            &SmudShaders<PARAMS>,
+            &SmudShape<F_PARAMS, U_PARAMS>,
+            &SmudShaders<F_PARAMS, U_PARAMS>,
             &GlobalTransform,
         )>,
     >,
@@ -536,7 +567,8 @@ fn extract_shapes<const PARAMS: usize>(
             entity,
             ExtractedShape {
                 color: shape.color,
-                params: shape.params,
+                f_params: shape.f_params,
+                u_params: shape.u_params,
                 transform: *transform,
                 shader_key: shaders.into(),
                 frame,
@@ -593,14 +625,14 @@ impl PipelineKey {
     }
 }
 
-fn queue_shapes<const PARAMS: usize>(
+fn queue_shapes<const F_PARAMS: usize, const U_PARAMS: usize>(
     mut view_entities: Local<FixedBitSet>,
     draw_functions: Res<DrawFunctions<Transparent2d>>,
-    smud_pipeline: Res<SmudPipeline<PARAMS>>,
-    mut pipelines: ResMut<SpecializedRenderPipelines<SmudPipeline<PARAMS>>>,
+    smud_pipeline: Res<SmudPipeline<F_PARAMS, U_PARAMS>>,
+    mut pipelines: ResMut<SpecializedRenderPipelines<SmudPipeline<F_PARAMS, U_PARAMS>>>,
     pipeline_cache: ResMut<PipelineCache>,
     msaa: Res<Msaa>,
-    extracted_shapes: ResMut<ExtractedShapes<PARAMS>>,
+    extracted_shapes: ResMut<ExtractedShapes<F_PARAMS, U_PARAMS>>,
     mut views: Query<(
         &mut RenderPhase<Transparent2d>,
         &VisibleEntities,
@@ -610,7 +642,7 @@ fn queue_shapes<const PARAMS: usize>(
 ) {
     let draw_smud_shape_function = draw_functions
         .read()
-        .get_id::<DrawSmudShape<PARAMS>>()
+        .get_id::<DrawSmudShape<F_PARAMS, U_PARAMS>>()
         .unwrap();
 
     // Iterate over each view (a camera is a view)
@@ -667,15 +699,15 @@ fn queue_shapes<const PARAMS: usize>(
     }
 }
 
-fn prepare_shapes<const PARAMS: usize>(
+fn prepare_shapes<const F_PARAMS: usize, const U_PARAMS: usize>(
     mut commands: Commands,
     mut previous_len: Local<usize>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
-    mut shape_meta: ResMut<ShapeMeta<PARAMS>>,
+    mut shape_meta: ResMut<ShapeMeta<F_PARAMS, U_PARAMS>>,
     view_uniforms: Res<ViewUniforms>,
-    smud_pipeline: Res<SmudPipeline<PARAMS>>,
-    extracted_shapes: Res<ExtractedShapes<PARAMS>>,
+    smud_pipeline: Res<SmudPipeline<F_PARAMS, U_PARAMS>>,
+    extracted_shapes: Res<ExtractedShapes<F_PARAMS, U_PARAMS>>,
     mut phases: Query<&mut RenderPhase<Transparent2d>>,
     globals_buffer: Res<GlobalsBuffer>,
 ) {
@@ -736,7 +768,8 @@ fn prepare_shapes<const PARAMS: usize>(
                 let vertex = ShapeVertex {
                     position,
                     color,
-                    params: extracted_shape.params,
+                    f_params: extracted_shape.f_params,
+                    u_params: extracted_shape.u_params,
                     rotation,
                     scale,
                     frame: extracted_shape.frame,
@@ -775,26 +808,30 @@ fn prepare_shapes<const PARAMS: usize>(
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-struct ShapeVertex<const PARAMS: usize> {
+struct ShapeVertex<const F_PARAMS: usize, const U_PARAMS: usize> {
     pub color: [f32; 4],
     pub frame: f32,
-    pub params: [SmudParam; PARAMS],
+    f_params: [f32; F_PARAMS],
+    u_params: [u32; U_PARAMS],
     pub position: [f32; 3],
     pub rotation: [f32; 2],
     pub scale: f32,
 }
 
-unsafe impl<const PARAMS: usize> Zeroable for ShapeVertex<PARAMS> {}
+unsafe impl<const F_PARAMS: usize, const U_PARAMS: usize> Zeroable
+    for ShapeVertex<F_PARAMS, U_PARAMS>
+{
+}
 
-unsafe impl<const PARAMS: usize> Pod for ShapeVertex<PARAMS> {}
+unsafe impl<const F_PARAMS: usize, const U_PARAMS: usize> Pod for ShapeVertex<F_PARAMS, U_PARAMS> {}
 
 #[derive(Resource)]
-pub(crate) struct ShapeMeta<const PARAMS: usize> {
-    vertices: BufferVec<ShapeVertex<PARAMS>>,
+pub(crate) struct ShapeMeta<const F_PARAMS: usize, const U_PARAMS: usize> {
+    vertices: BufferVec<ShapeVertex<F_PARAMS, U_PARAMS>>,
     view_bind_group: Option<BindGroup>,
 }
 
-impl<const PARAMS: usize> Default for ShapeMeta<PARAMS> {
+impl<const F_PARAMS: usize, const U_PARAMS: usize> Default for ShapeMeta<F_PARAMS, U_PARAMS> {
     fn default() -> Self {
         Self {
             vertices: BufferVec::new(BufferUsages::VERTEX),
@@ -805,6 +842,5 @@ impl<const PARAMS: usize> Default for ShapeMeta<PARAMS> {
 
 #[derive(Component, Eq, PartialEq, Clone)]
 pub(crate) struct ShapeBatch {
-
     range: Range<u32>,
 }

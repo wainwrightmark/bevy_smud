@@ -8,7 +8,7 @@ fn main() {
         // which is more efficient than MSAA, and also works on Linux, wayland
         .insert_resource(Msaa::Off)
         .insert_resource(ClearColor(Color::BLACK))
-        .add_plugins((DefaultPlugins, SmudPlugin::<0>, PanCamPlugin))
+        .add_plugins((DefaultPlugins, SmudPlugin::<0,0>, PanCamPlugin))
         .add_systems(Startup, setup)
         .run();
 }
@@ -25,13 +25,13 @@ fn setup(
     );
 
     commands.spawn(ShapeBundle {
-        shape: SmudShape::<0> {
+        shape: SmudShape::<0,0> {
             color: Color::TEAL,
 
             frame: Frame::Quad(295.),
             ..Default::default()
         },
-        shaders: SmudShaders::<0> {
+        shaders: SmudShaders::<0,0> {
             sdf: asset_server.load("bevy.wgsl"),
             fill: sin_fill,
             ..default()
@@ -41,13 +41,13 @@ fn setup(
 
     commands.spawn(ShapeBundle {
         transform: Transform::from_translation(Vec3::X * 600.),
-        shape: SmudShape::<0> {
+        shape: SmudShape::<0,0> {
             color: Color::BLUE,
 
             frame: Frame::Quad(295.),
             ..Default::default()
         },
-        shaders: SmudShaders::<0> {
+        shaders: SmudShaders::<0,0> {
             sdf: asset_server.load("bevy.wgsl"),
             fill: SIMPLE_FILL_HANDLE,
             ..default()
@@ -57,13 +57,13 @@ fn setup(
 
     commands.spawn(ShapeBundle {
         transform: Transform::from_translation(Vec3::X * -600.),
-        shape: SmudShape::<0> {
+        shape: SmudShape::<0,0> {
             color: Color::ORANGE,
 
             frame: Frame::Quad(295.),
             ..Default::default()
         },
-        shaders: SmudShaders::<0> {
+        shaders: SmudShaders::<0,0> {
             sdf: asset_server.load("bevy.wgsl"),
             fill: shaders.add_fill_body(
                 r"

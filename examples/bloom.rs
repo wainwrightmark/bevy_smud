@@ -13,7 +13,7 @@ fn main() {
         // which is more efficient than MSAA, and also works on Linux, wayland
         .insert_resource(Msaa::Off)
         .insert_resource(ClearColor(Color::BLACK))
-        .add_plugins((DefaultPlugins, SmudPlugin::<0>))
+        .add_plugins((DefaultPlugins, SmudPlugin::<0,0>))
         .add_systems(Startup, setup)
         .run();
 }
@@ -26,7 +26,7 @@ fn setup(mut commands: Commands, mut shaders: ResMut<Assets<Shader>>) {
     let circle = shaders.add_sdf_expr("smud::sd_circle(p, 70.)", ShaderParamUsage::NO_PARAMS);
 
     commands.spawn(ShapeBundle {
-        shape: SmudShape::<0> {
+        shape: SmudShape::<0,0> {
             color: Color::TOMATO,
             // The frame needs to be bigger than the shape we're drawing
             // Since the circle has radius 70, we make the half-size of the quad 80.
@@ -34,7 +34,7 @@ fn setup(mut commands: Commands, mut shaders: ResMut<Assets<Shader>>) {
 
             ..Default::default()
         },
-        shaders: SmudShaders::<0>{
+        shaders: SmudShaders::<0,0>{
             sdf: circle,
             fill: SIMPLE_FILL_HANDLE,
             ..default()

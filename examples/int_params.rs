@@ -1,13 +1,18 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
-use bevy_smud::{param_usage::{ShaderParamUsage, ShaderParameter}, prelude::*, SmudShaders};
+use bevy_smud::{
+    param_usage::{ShaderParamUsage, ShaderParameter},
+    prelude::*,
+    SmudShaders,
+};
 use rand::prelude::IteratorRandom;
 
 // this example shows how to use per-instance parameters in shapes
 // in this simple example, a width and height is passed to a box shape,
 // but it could be used for almost anything.
 
-const PARAMS: usize = 4;
+const F_PARAMS: usize = 3;
+const U_PARAMS: usize = 1;
 
 fn main() {
     App::new()
@@ -19,7 +24,7 @@ fn main() {
         .insert_resource(Msaa::Off)
         .add_plugins((
             DefaultPlugins,
-            SmudPlugin::<PARAMS>,
+            SmudPlugin::<F_PARAMS, U_PARAMS>,
             bevy_lospec::PalettePlugin,
         ))
         .add_systems(OnEnter(GameState::Running), setup)
@@ -45,7 +50,12 @@ fn setup(
     assets: Res<AssetHandles>,
     palettes: Res<Assets<bevy_lospec::Palette>>,
 ) {
-    const PARAMETERS: &'static [ShaderParameter] = &[ ShaderParameter::f32(0), ShaderParameter::f32(1), ShaderParameter::f32(2), ShaderParameter::u32(3)];
+    const PARAMETERS: &'static [ShaderParameter] = &[
+        ShaderParameter::f32(0),
+        ShaderParameter::f32(1),
+        ShaderParameter::f32(2),
+        ShaderParameter::u32(3),
+    ];
     let fill_param_usage = ShaderParamUsage(PARAMETERS);
 
     let circle = shaders.add_sdf_expr("smud::sd_circle(p, 50.)", ShaderParamUsage::NO_PARAMS);
@@ -55,8 +65,8 @@ fn setup(
         r"
 
         let a = smud::sd_fill_alpha_fwidth(d);
-            let other_color = vec3<f32>(param_0, param_1, param_2);
-        if param_3 == 0u{
+            let other_color = vec3<f32>(param_f_0, param_f_1, param_f_2);
+        if param_u_3 == 0u{
              let mixed_color = mix(color.rgb, other_color, (p.x + 0.5) * 0.01);
              return vec4<f32>(mixed_color, a * color.a);
         }else{
@@ -101,13 +111,14 @@ fn setup(
             .copied()
             .unwrap_or(Color::PINK);
 
-        commands.spawn(ShapeBundle::<PARAMS> {
+        commands.spawn(ShapeBundle::<F_PARAMS, U_PARAMS> {
             transform,
             shape: SmudShape {
                 color,
 
                 frame: Frame::Quad(50.0 + padding),
-                params: [color2.r().into(),  color2.g().into(), color2.b().into(), (i %2).into()],
+                f_params: [color2.r().into(), color2.g().into(), color2.b().into()],
+                u_params: [(i % 2).into()],
             },
             shaders: SmudShaders {
                 sdf: circle.clone(),

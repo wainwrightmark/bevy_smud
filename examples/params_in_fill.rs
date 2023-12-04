@@ -7,7 +7,8 @@ use rand::prelude::IteratorRandom;
 // in this simple example, a width and height is passed to a box shape,
 // but it could be used for almost anything.
 
-const PARAMS: usize = 3;
+const F_PARAMS: usize = 3;
+ const U_PARAMS: usize = 0;
 
 fn main() {
     App::new()
@@ -19,7 +20,7 @@ fn main() {
         .insert_resource(Msaa::Off)
         .add_plugins((
             DefaultPlugins,
-            SmudPlugin::<PARAMS>,
+            SmudPlugin::<F_PARAMS, U_PARAMS>,
             bevy_lospec::PalettePlugin,
         ))
         .add_systems(OnEnter(GameState::Running), setup)
@@ -54,7 +55,7 @@ fn setup(
     let gradient_fill = shaders.add_fill_body(
         r"
         let a = smud::sd_fill_alpha_fwidth(d);
-        let other_color = vec3<f32>(param_0, param_1, param_2);
+        let other_color = vec3<f32>(param_f_0, param_f_1, param_f_2);
         let mixed_color = mix(color.rgb, other_color, (p.x + 0.5) * 0.01);
 
         return vec4<f32>(mixed_color, a * color.a);
@@ -94,13 +95,14 @@ fn setup(
             .copied()
             .unwrap_or(Color::PINK);
 
-        commands.spawn(ShapeBundle::<PARAMS> {
+        commands.spawn(ShapeBundle::<F_PARAMS, U_PARAMS> {
             transform,
             shape: SmudShape {
                 color,
 
                 frame: Frame::Quad(50.0 + padding),
-                params: [color2.r().into(),  color2.g().into(), color2.b().into()],
+                f_params: [color2.r().into(),  color2.g().into(), color2.b().into()],
+                ..Default::default()
             },
             shaders: SmudShaders {
                 sdf: circle.clone(),

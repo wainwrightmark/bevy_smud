@@ -8,7 +8,7 @@ fn main() {
         // which is more efficient than MSAA, and also works on Linux, wayland
         .insert_resource(Msaa::Off)
         .insert_resource(ClearColor(Color::rgb(0.7, 0.8, 0.7)))
-        .add_plugins((DefaultPlugins, SmudPlugin::<0>, PanCamPlugin))
+        .add_plugins((DefaultPlugins, SmudPlugin::<0,0>, PanCamPlugin))
         .add_systems(Startup, setup)
         .run();
 }
@@ -20,10 +20,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         shape: SmudShape {
             color: Color::rgb(0.36, 0.41, 0.45),
             frame: Frame::Quad(400.),
-            params: [],
             ..default()
         },
-        shaders: SmudShaders::<0>{
+        shaders: SmudShaders::<0,0>{
             sdf: bevy_shape_shader,
             ..default()
         },

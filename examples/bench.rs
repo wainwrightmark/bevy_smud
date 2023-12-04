@@ -21,7 +21,7 @@ fn main() {
             DefaultPlugins,
             LogDiagnosticsPlugin::default(),
             FrameTimeDiagnosticsPlugin,
-            SmudPlugin::<0>,
+            SmudPlugin::<0,0>,
             PanCamPlugin,
             bevy_lospec::PalettePlugin,
         ))
@@ -82,13 +82,13 @@ fn setup(
                         j as f32 * spacing - h as f32 * spacing / 2.,
                         0.,
                     )),
-                    shape: SmudShape::<0> {
+                    shape: SmudShape::<0,0> {
                         color,
 
                         frame: Frame::Quad(295.),
                         ..default()
                     },
-                    shaders: SmudShaders::<0>{
+                    shaders: SmudShaders::<0,0>{
                         sdf: bevy_shape_shader.clone(),
                         ..default()
                     },

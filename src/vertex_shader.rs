@@ -1,24 +1,29 @@
 use bevy::render::render_resource::Shader;
 
 /// Creates a vertex shader with the correct number of arguments
-pub(crate) fn create_vertex_shader<const PARAMS: usize>() -> Shader {
+pub(crate) fn create_vertex_shader<const F_PARAMS: usize, const U_PARAMS: usize>() -> Shader {
     // TODO Create this string at compile time?
 
-    let rotation_location = PARAMS + 2;
-    let scale_location = PARAMS + 3;
-    let frame_location = PARAMS + 4;
+    let rotation_location = (F_PARAMS + U_PARAMS) + 2;
+    let scale_location = (F_PARAMS + U_PARAMS) + 3;
+    let frame_location = (F_PARAMS + U_PARAMS) + 4;
 
-    let params_locations = format_params_locations::<PARAMS>();
+    let params_locations = format_params_locations::<F_PARAMS, U_PARAMS>();
 
     let mut params_assignments = "".to_string();
-    for index in 0..PARAMS {
+    for index in 0..F_PARAMS {
         params_assignments
-            .push_str(format!("    out.param_{index} = vertex.param_{index};\n").as_str());
+            .push_str(format!("    out.param_f_{index} = vertex.param_f_{index};\n").as_str());
+    }
+
+    for index in F_PARAMS..(U_PARAMS + F_PARAMS) {
+        params_assignments
+            .push_str(format!("    out.param_u_{index} = vertex.param_u_{index};\n").as_str());
     }
 
     let source = format!(
         r##"
-#define_import_path smud::vertex_params_{PARAMS}
+#define_import_path smud::vertex_params_{F_PARAMS}_{U_PARAMS}
 
 struct View {{
     view_proj: mat4x4<f32>,
@@ -65,15 +70,22 @@ return out;
 }}
 "##
     );
+    //bevy::log::info!(source);
     let path = file!();
     Shader::from_wgsl(source, path)
 }
 
-pub(crate) fn format_params_locations<const PARAMS: usize>() -> String {
+pub(crate) fn format_params_locations<const F_PARAMS: usize, const U_PARAMS: usize>() -> String {
     let mut result = "".to_string();
-    for index in 0..PARAMS {
-        result
-            .push_str(format!("@location({loc}) param_{index}: u32,\n", loc = index + 2).as_str());
+    for index in 0..F_PARAMS {
+        result.push_str(
+            format!("@location({loc}) param_f_{index}: f32,\n", loc = index + 2).as_str(),
+        );
+    }
+    for index in F_PARAMS..(U_PARAMS + F_PARAMS) {
+        result.push_str(
+            format!("@location({loc}) param_u_{index}: u32,\n", loc = index + 2).as_str(),
+        );
     }
     result
 }

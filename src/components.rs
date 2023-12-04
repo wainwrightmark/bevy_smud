@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bytemuck::{Pod, Zeroable};
 
 use crate::{
     param_usage::ShaderParamUsage, shader_loading::DEFAULT_SDF_HANDLE, DEFAULT_FILL_HANDLE,
@@ -8,7 +7,7 @@ use crate::{
 #[derive(Component, Reflect, Debug, Clone)]
 #[reflect(Component)]
 /// Describes an SDF shape. Must be used with `SmudShaders`
-pub struct SmudShape<const PARAMS: usize> {
+pub struct SmudShape<const F_PARAMS: usize, const U_PARAMS: usize> {
     /// The color used by the fill shader
     pub color: Color,
 
@@ -17,15 +16,17 @@ pub struct SmudShape<const PARAMS: usize> {
     /// Parameters to pass to shapes, for things such as width of a box
     // perhaps it would be a better idea to have this as a separate component?
     // keeping it here for now...
-    pub params: [SmudParam; PARAMS],
+    pub f_params: [f32; F_PARAMS],
+    pub u_params: [u32; U_PARAMS],
 }
 
-impl<const PARAMS: usize> Default for SmudShape<PARAMS> {
+impl<const F_PARAMS: usize, const U_PARAMS: usize> Default for SmudShape<F_PARAMS, U_PARAMS> {
     fn default() -> Self {
         Self {
             color: Color::PINK,
             frame: default(),
-            params: [SmudParam::default(); PARAMS],
+            f_params: [f32::default(); F_PARAMS],
+            u_params: [u32::default(); U_PARAMS],
         }
     }
 }
@@ -33,7 +34,7 @@ impl<const PARAMS: usize> Default for SmudShape<PARAMS> {
 #[derive(Component, Debug, Clone)]
 
 /// Describes an SDF shape. Must be used with `SmudShape`
-pub struct SmudShaders<const PARAMS: usize> {
+pub struct SmudShaders<const F_PARAMS: usize, const U_PARAMS: usize> {
     /// Shader containing a wgsl function for a signed distance field
     ///
     /// The shader needs to have the signature `fn sdf(p: vec2<f32>) -> f32`.
@@ -50,7 +51,7 @@ pub struct SmudShaders<const PARAMS: usize> {
     pub fill_param_usage: ShaderParamUsage,
 }
 
-impl<const PARAMS: usize> Default for SmudShaders<PARAMS> {
+impl<const F_PARAMS: usize, const U_PARAMS: usize> Default for SmudShaders<F_PARAMS, U_PARAMS> {
     fn default() -> Self {
         Self {
             sdf: DEFAULT_SDF_HANDLE,
@@ -78,43 +79,3 @@ impl Default for Frame {
     }
 }
 
-#[repr(transparent)]
-/// Parameters to a smud shader. This can be either an f32 or a u32 but will be sent as a u32
-#[derive(Debug, Copy, Clone, Default, PartialEq, Pod, Zeroable, Reflect)]
-pub struct SmudParam(u32);
-
-impl SmudParam {
-    /// Create a parameter from an integer
-    pub fn integer(value: u32) -> Self {
-        Self(value)
-    }
-
-    ///Create a parameter from a float
-    pub fn float(value: f32) -> Self {
-        value.into()
-    }
-}
-
-impl Into<SmudParam> for f32 {
-    fn into(self) -> SmudParam {
-        SmudParam(f32::to_bits(self))
-    }
-}
-
-impl From<SmudParam> for f32 {
-    fn from(value: SmudParam) -> Self {
-        f32::from_bits(value.0)
-    }
-}
-
-impl Into<SmudParam> for u32 {
-    fn into(self) -> SmudParam {
-        SmudParam(self)
-    }
-}
-
-impl From<SmudParam> for u32 {
-    fn from(value: SmudParam) -> Self {
-        value.0
-    }
-}
