@@ -14,6 +14,8 @@ pub const DEFAULT_FILL_HANDLE: Handle<Shader> = Handle::weak_from_u128(181846635
 /// Simple single-colored filled fill
 pub const SIMPLE_FILL_HANDLE: Handle<Shader> = Handle::weak_from_u128(16286090377316294491);
 
+pub const DEFAULT_SDF_HANDLE: Handle<Shader> = Handle::weak_from_u128(87169507495872744019129766473752);
+
 pub const fn get_vertex_handle<const PARAMS: usize>() -> Handle<Shader> {
     let id = 16846632126033267571u128; //this is the old shader uuid
     let new_id = id.wrapping_add(PARAMS as u128);
@@ -62,6 +64,13 @@ impl<const PARAMS: usize> Plugin for ShaderLoadingPlugin<PARAMS> {
             app,
             SIMPLE_FILL_HANDLE,
             "../assets/fills/simple.wgsl",
+            Shader::from_wgsl
+        );
+
+        load_internal_asset!(
+            app,
+            DEFAULT_SDF_HANDLE,
+            "../assets/sdf/anywhere.wgsl",
             Shader::from_wgsl
         );
     }

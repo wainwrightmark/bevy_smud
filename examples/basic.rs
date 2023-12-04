@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 // The prelude contains the basic things needed to create shapes
-use bevy_smud::{param_usage::ShaderParamUsage, prelude::*};
+use bevy_smud::{param_usage::ShaderParamUsage, prelude::*, SmudShaders};
 
 fn main() {
     App::new()
@@ -41,10 +41,14 @@ return smud::sd_circle(p_2 - vec2<f32>(20., 0.), 40.);
     commands.spawn(ShapeBundle {
         shape: SmudShape::<0> {
             color: Color::TOMATO,
-            sdf: circle,
+
             // The frame needs to be bigger than the shape we're drawing
             // Since the circle has radius 70, we make the half-size of the quad 80.
             frame: Frame::Quad(80.),
+            ..default()
+        },
+        shaders: SmudShaders::<0> {
+
             ..default()
         },
         ..default()
@@ -54,8 +58,11 @@ return smud::sd_circle(p_2 - vec2<f32>(20., 0.), 40.);
         transform: Transform::from_translation(Vec3::X * 200.),
         shape: SmudShape::<0> {
             color: Color::rgb(0.7, 0.6, 0.4),
-            sdf: peanut,
             frame: Frame::Quad(80.),
+            ..default()
+        },
+        shaders: SmudShaders::<0> {
+            sdf: peanut,
             ..default()
         },
         ..default()
@@ -69,11 +76,15 @@ return smud::sd_circle(p_2 - vec2<f32>(20., 0.), 40.);
         },
         shape: SmudShape::<0> {
             color: Color::WHITE,
+
+            frame: Frame::Quad(295.),
+            ..default()
+        },
+        shaders: SmudShaders::<0> {
             sdf: bevy,
             // You can also specify a custom type of fill
             // The simple fill is just a simple anti-aliased opaque fill
             fill: SIMPLE_FILL_HANDLE,
-            frame: Frame::Quad(295.),
             ..default()
         },
         ..default()

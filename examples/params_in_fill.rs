@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
-use bevy_smud::{param_usage::ShaderParamUsage, prelude::*};
+use bevy_smud::{param_usage::ShaderParamUsage, prelude::*, SmudShaders};
 use rand::{prelude::IteratorRandom, random};
 
 // this example shows how to use per-instance parameters in shapes
@@ -99,10 +99,13 @@ fn setup(
             transform,
             shape: SmudShape {
                 color,
-                sdf: circle.clone(),
-                fill: gradient_fill.clone(),
+
                 frame: Frame::Quad(50.0 + padding),
                 params: [color2.r(), color2.g(), color2.b()],
+            },
+            shaders: SmudShaders {
+                sdf: circle.clone(),
+                fill: gradient_fill.clone(),
                 sdf_param_usage: ShaderParamUsage::NO_PARAMS,
                 fill_param_usage,
             },

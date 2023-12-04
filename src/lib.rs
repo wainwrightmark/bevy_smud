@@ -380,7 +380,7 @@ fn extract_sdf_shaders<const PARAMS: usize>(
     mut pipeline: ResMut<SmudPipeline<PARAMS>>,
 ) {
     main_world.resource_scope(|world, mut shaders: Mut<Assets<Shader>>| {
-        let mut shapes = world.query::<&SmudShape<PARAMS>>();
+        let mut shapes = world.query::<&SmudShaders<PARAMS>>();
 
         for shape in shapes.iter(world) {
             let shader_key = ShaderKey {
@@ -485,8 +485,8 @@ impl ShaderKey {
     };
 }
 
-impl<const PARAMS: usize> From<&SmudShape<PARAMS>> for ShaderKey {
-    fn from(value: &SmudShape<PARAMS>) -> Self {
+impl<const PARAMS: usize> From<&SmudShaders<PARAMS>> for ShaderKey {
+    fn from(value: &SmudShaders<PARAMS>) -> Self {
         Self {
             sdf_shader: value.sdf.id(),
             fill_shader: value.fill.id(),
@@ -517,13 +517,14 @@ fn extract_shapes<const PARAMS: usize>(
             Entity,
             &ViewVisibility,
             &SmudShape<PARAMS>,
+            &SmudShaders<PARAMS>,
             &GlobalTransform,
         )>,
     >,
 ) {
     extracted_shapes.shapes.clear();
 
-    for (entity, view_visibility, shape, transform) in shape_query.iter() {
+    for (entity, view_visibility, shape, shaders, transform) in shape_query.iter() {
         if !view_visibility.get() {
             continue;
         }
@@ -536,7 +537,7 @@ fn extract_shapes<const PARAMS: usize>(
                 color: shape.color,
                 params: shape.params,
                 transform: *transform,
-                shader_key: shape.into(),
+                shader_key: shaders.into(),
                 frame,
             },
         );

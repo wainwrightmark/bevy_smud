@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
-use bevy_smud::{prelude::*, param_usage::ShaderParamUsage};
+use bevy_smud::{prelude::*, param_usage::ShaderParamUsage, SmudShaders};
 use rand::{prelude::IteratorRandom, random};
 
 // this example shows how to use per-instance parameters in shapes
@@ -77,12 +77,22 @@ fn setup(
             transform,
             shape: SmudShape {
                 color,
-                sdf: box_sdf.clone(),
+
                 frame: Frame::Quad(size.x.max(size.y) + padding),
                 params: [size.x, size.y],
-                sdf_param_usage: sdf_param_usage,
+
                 ..Default::default()
             },
+
+            shaders: SmudShaders::<PARAMS> {
+                sdf: box_sdf.clone(),
+                // You can also specify a custom type of fill
+                // The simple fill is just a simple anti-aliased opaque fill
+                fill: SIMPLE_FILL_HANDLE,
+                sdf_param_usage: sdf_param_usage,
+                ..default()
+            },
+
             ..Default::default()
         });
     }

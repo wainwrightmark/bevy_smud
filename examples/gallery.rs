@@ -112,13 +112,16 @@ fn setup(
                     shape: SmudShape::<0> {
                         color,
                         // sdf_shader: shaders[index % shaders.len()].clone(),
-                        sdf: shaders.choose(&mut rng).unwrap().clone(),
                         frame: Frame::Quad(50.),
-                        fill: fills.choose(&mut rng).unwrap().clone(),
+
                         params: Default::default(),
-                        fill_param_usage: Default::default(),
-                        sdf_param_usage: Default::default()
                     },
+                    shaders: SmudShaders::<0> {
+                        sdf: shaders.choose(&mut rng).unwrap().clone(),
+                        fill: fills.choose(&mut rng).unwrap().clone(),
+                        ..default()
+                    },
+
                     ..default()
                 },
                 Index(index),

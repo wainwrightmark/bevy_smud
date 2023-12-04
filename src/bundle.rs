@@ -1,12 +1,15 @@
 use bevy::prelude::*;
 
-use crate::SmudShape;
+use crate::{SmudShape, SmudShaders};
 
 #[derive(Bundle, Default, Clone, Debug)]
 /// Bundle with all the components needed for drawing an sdf shape in 2d world space
 pub struct ShapeBundle<const PARAMS: usize> {
-    /// The shape, which describes the geometry, color and fill
+    /// The shape, which describes the color, frame, and additional parameters
     pub shape: SmudShape<PARAMS>,
+
+    /// The shaders which describes the sdf and fill
+    pub shaders: SmudShaders<PARAMS>,
     /// A transform, set this to set the position, orientation and scale of the shape
     ///
     /// note: scaling the shape with the transform will also scale the fill, including any outlines etc.

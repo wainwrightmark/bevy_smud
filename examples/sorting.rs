@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_pancam::*;
-use bevy_smud::{prelude::*, param_usage::ShaderParamUsage};
+use bevy_smud::{param_usage::ShaderParamUsage, prelude::*, SmudShaders};
 
 fn main() {
     App::new()
@@ -19,8 +19,15 @@ fn setup(mut commands: Commands, mut shaders: ResMut<Assets<Shader>>) {
         transform: Transform::from_translation(Vec3::Z * 3.),
         shape: SmudShape::<0> {
             color: Color::rgb(0.0, 0.0, 0.0),
-            sdf: shaders.add_sdf_body("return smud::sd_circle(p, 70.);", ShaderParamUsage::NO_PARAMS),
+
             frame: Frame::Quad(80.),
+            ..default()
+        },
+        shaders: SmudShaders {
+            sdf: shaders.add_sdf_body(
+                "return smud::sd_circle(p, 70.);",
+                ShaderParamUsage::NO_PARAMS,
+            ),
             ..default()
         },
         ..default()
@@ -31,8 +38,15 @@ fn setup(mut commands: Commands, mut shaders: ResMut<Assets<Shader>>) {
         transform: Transform::from_translation(Vec3::Z * 2.),
         shape: SmudShape::<0> {
             color: Color::rgb(0.46, 0.42, 0.80),
-            sdf: shaders.add_sdf_body("return smud::sd_circle(p, 150.);", ShaderParamUsage::NO_PARAMS),
+
             frame: Frame::Quad(200.),
+            ..default()
+        },
+        shaders: SmudShaders {
+            sdf: shaders.add_sdf_body(
+                "return smud::sd_circle(p, 150.);",
+                ShaderParamUsage::NO_PARAMS,
+            ),
             ..default()
         },
         ..default()
@@ -43,8 +57,15 @@ fn setup(mut commands: Commands, mut shaders: ResMut<Assets<Shader>>) {
         transform: Transform::from_translation(Vec3::Z * 1.),
         shape: SmudShape::<0> {
             color: Color::rgb(0.83, 0.82, 0.80),
-            sdf: shaders.add_sdf_body("return smud::sd_vesica(p.yx, 400., 150.);", ShaderParamUsage::NO_PARAMS),
+
             frame: Frame::Quad(400.),
+            ..default()
+        },
+        shaders: SmudShaders {
+            sdf: shaders.add_sdf_body(
+                "return smud::sd_vesica(p.yx, 400., 150.);",
+                ShaderParamUsage::NO_PARAMS,
+            ),
             ..default()
         },
         ..default()

@@ -26,8 +26,13 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let shape = SmudShape::<0> {
         color: Color::rgb(0.36, 0.41, 0.45),
-        sdf: bevy_shape_shader,
+
         frame: Frame::Quad(295.),
+        ..default()
+    };
+
+    let shaders = SmudShaders::<0>{
+        sdf: bevy_shape_shader,
         ..default()
     };
 
@@ -35,6 +40,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn(ShapeBundle {
             shape: shape.clone(),
+            shaders: shaders.clone(),
             ..default()
         })
         .with_children(|parent| {
@@ -42,12 +48,14 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 .spawn(ShapeBundle {
                     transform,
                     shape: shape.clone(),
+                    shaders: shaders.clone(),
                     ..default()
                 })
                 .with_children(|parent| {
                     parent.spawn(ShapeBundle {
                         transform,
                         shape: shape.clone(),
+                        shaders: shaders.clone(),
                         ..default()
                     });
                 });

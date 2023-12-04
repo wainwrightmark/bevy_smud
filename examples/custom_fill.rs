@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_pancam::*;
-use bevy_smud::{param_usage::ShaderParamUsage, prelude::*, SIMPLE_FILL_HANDLE};
+use bevy_smud::{param_usage::ShaderParamUsage, prelude::*, SIMPLE_FILL_HANDLE, SmudShaders};
 
 fn main() {
     App::new()
@@ -27,10 +27,14 @@ fn setup(
     commands.spawn(ShapeBundle {
         shape: SmudShape::<0> {
             color: Color::TEAL,
-            sdf: asset_server.load("bevy.wgsl"),
-            fill: sin_fill,
+
             frame: Frame::Quad(295.),
             ..Default::default()
+        },
+        shaders: SmudShaders::<0> {
+            sdf: asset_server.load("bevy.wgsl"),
+            fill: sin_fill,
+            ..default()
         },
         ..default()
     });
@@ -39,10 +43,14 @@ fn setup(
         transform: Transform::from_translation(Vec3::X * 600.),
         shape: SmudShape::<0> {
             color: Color::BLUE,
-            sdf: asset_server.load("bevy.wgsl"),
-            fill: SIMPLE_FILL_HANDLE,
+
             frame: Frame::Quad(295.),
             ..Default::default()
+        },
+        shaders: SmudShaders::<0> {
+            sdf: asset_server.load("bevy.wgsl"),
+            fill: SIMPLE_FILL_HANDLE,
+            ..default()
         },
         ..default()
     });
@@ -51,6 +59,11 @@ fn setup(
         transform: Transform::from_translation(Vec3::X * -600.),
         shape: SmudShape::<0> {
             color: Color::ORANGE,
+
+            frame: Frame::Quad(295.),
+            ..Default::default()
+        },
+        shaders: SmudShaders::<0> {
             sdf: asset_server.load("bevy.wgsl"),
             fill: shaders.add_fill_body(
                 r"
@@ -60,9 +73,7 @@ return vec4<f32>(color.rgb, a * color.a);
             ",
                 ShaderParamUsage::NO_PARAMS,
             ),
-
-            frame: Frame::Quad(295.),
-            ..Default::default()
+            ..default()
         },
         ..default()
     });

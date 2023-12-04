@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_smud::prelude::*;
+use bevy_smud::{prelude::*, SmudShaders};
 
 fn main() {
     App::new()
@@ -23,12 +23,16 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         shape: SmudShape::<0> {
             color: Color::WHITE,
+
+            frame: Frame::Quad(295.),
+            ..Default::default()
+        },
+        shaders: SmudShaders::<0> {
             sdf: bevy,
             // You can also specify a custom type of fill
             // The simple fill is just a simple anti-aliased opaque fill
             fill: SIMPLE_FILL_HANDLE,
-            frame: Frame::Quad(295.),
-            ..Default::default()
+            ..default()
         },
         ..default()
     });

@@ -19,9 +19,13 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(ShapeBundle {
         shape: SmudShape::<0> {
             color: Color::rgb(0.36, 0.41, 0.45),
-            sdf: bevy_shape_shader,
+
             frame: Frame::Quad(400.),
             ..default()
+        },
+        shaders: SmudShaders{
+            sdf: bevy_shape_shader,
+            ..Default::default()
         },
         ..default()
     });
