@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
-use bevy_smud::{param_usage::ShaderParamUsage, prelude::*, SmudShaders};
+use bevy_smud::{param_usage::{ShaderParamUsage, ShaderParameter, ShaderParamType}, prelude::*, SmudShaders};
 use rand::prelude::IteratorRandom;
 
 // this example shows how to use per-instance parameters in shapes
@@ -45,7 +45,10 @@ fn setup(
     assets: Res<AssetHandles>,
     palettes: Res<Assets<bevy_lospec::Palette>>,
 ) {
-    let fill_param_usage = ShaderParamUsage::all_params::<PARAMS>();
+    const PARAMETERS: &'static [ShaderParameter] = &[ ShaderParameter{index: 0, param_type: ShaderParamType::F32 }, ShaderParameter{index: 1, param_type: ShaderParamType::F32 }, ShaderParameter{index: 2, param_type: ShaderParamType::F32 }];
+    let fill_param_usage = ShaderParamUsage{
+        parameters: PARAMETERS
+    };
 
     let circle = shaders.add_sdf_expr("smud::sd_circle(p, 50.)", ShaderParamUsage::NO_PARAMS);
 

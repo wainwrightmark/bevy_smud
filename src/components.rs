@@ -30,8 +30,8 @@ impl<const PARAMS: usize> Default for SmudShape<PARAMS> {
     }
 }
 
-#[derive(Component, Reflect, Debug, Clone)]
-#[reflect(Component)]
+#[derive(Component, Debug, Clone)]
+
 /// Describes an SDF shape. Must be used with `SmudShape`
 pub struct SmudShaders<const PARAMS: usize> {
     /// Shader containing a wgsl function for a signed distance field

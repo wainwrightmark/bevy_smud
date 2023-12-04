@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
-use bevy_smud::{prelude::*, param_usage::ShaderParamUsage, SmudShaders};
+use bevy_smud::{prelude::*, param_usage::{ShaderParamUsage, ShaderParameter, ShaderParamType}, SmudShaders};
 use rand::{prelude::IteratorRandom, random};
 
 // this example shows how to use per-instance parameters in shapes
@@ -43,7 +43,11 @@ fn setup(
     assets: Res<AssetHandles>,
     palettes: Res<Assets<bevy_lospec::Palette>>,
 ) {
-    let sdf_param_usage = ShaderParamUsage::all_params::<PARAMS>();
+
+    const PARAMETERS: &'static [ShaderParameter] = &[ ShaderParameter{index: 0, param_type: ShaderParamType::F32 }, ShaderParameter{index: 1, param_type: ShaderParamType::F32 }];
+    let sdf_param_usage = ShaderParamUsage{
+        parameters: PARAMETERS
+    };
 
 
     let box_sdf = shaders.add_sdf_expr("smud::sd_box(p, vec2<f32>(param_0, param_1))", sdf_param_usage);

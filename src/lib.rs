@@ -54,6 +54,7 @@ use crate::util::generate_shader_id;
 
 mod bundle;
 mod components;
+/// Defines shader parameters and their usages
 pub mod param_usage;
 mod sdf_assets;
 mod shader_loading;
