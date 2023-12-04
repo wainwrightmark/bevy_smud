@@ -54,7 +54,7 @@ fn setup(
         ShaderParameter::f32(0),
         ShaderParameter::f32(1),
         ShaderParameter::f32(2),
-        ShaderParameter::u32(3),
+        ShaderParameter::u32(0),
     ];
     let fill_param_usage = ShaderParamUsage(PARAMETERS);
 
@@ -66,7 +66,7 @@ fn setup(
 
         let a = smud::sd_fill_alpha_fwidth(d);
             let other_color = vec3<f32>(param_f_0, param_f_1, param_f_2);
-        if param_u_3 == 0u{
+        if param_u_0 == 0u{
              let mixed_color = mix(color.rgb, other_color, (p.x + 0.5) * 0.01);
              return vec4<f32>(mixed_color, a * color.a);
         }else{

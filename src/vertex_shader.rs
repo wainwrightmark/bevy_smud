@@ -16,7 +16,7 @@ pub(crate) fn create_vertex_shader<const F_PARAMS: usize, const U_PARAMS: usize>
             .push_str(format!("    out.param_f_{index} = vertex.param_f_{index};\n").as_str());
     }
 
-    for index in F_PARAMS..(U_PARAMS + F_PARAMS) {
+    for index in 0..U_PARAMS{
         params_assignments
             .push_str(format!("    out.param_u_{index} = vertex.param_u_{index};\n").as_str());
     }
@@ -82,9 +82,9 @@ pub(crate) fn format_params_locations<const F_PARAMS: usize, const U_PARAMS: usi
             format!("@location({loc}) param_f_{index}: f32,\n", loc = index + 2).as_str(),
         );
     }
-    for index in F_PARAMS..(U_PARAMS + F_PARAMS) {
+    for index in 0..U_PARAMS {
         result.push_str(
-            format!("@location({loc}) param_u_{index}: u32,\n", loc = index + 2).as_str(),
+            format!("@location({loc}) param_u_{index}: u32,\n", loc = index + F_PARAMS + 2).as_str(),
         );
     }
     result
