@@ -56,7 +56,7 @@ fn setup(
         r"
         let a = smud::sd_fill_alpha_fwidth(d);
         let other_color = vec3<f32>(param_0, param_1, param_2);
-        let mixed_color = mix(color.rgb, other_color, p.x / 25.0);
+        let mixed_color = mix(color.rgb, other_color, (p.x + 0.5) * 0.01);
 
         return vec4<f32>(mixed_color, a * color.a);
                     ",
@@ -78,7 +78,7 @@ fn setup(
         let transform = Transform {
             scale: Vec3::splat(1.),
             translation: Vec3::new(x, y, 0.),
-            rotation: Quat::from_rotation_z(random::<f32>() * PI),
+            rotation: Default::default(),
         };
 
         let color = palette
